@@ -1,28 +1,30 @@
 /* Setup our aws provider */
 provider "aws" {
-  region  = "eu-central-1"
-  profile = "stg"
+  region  = "${var.region}"
+  profile = "${var.profile}"
 }
 
 resource "aws_instance" "master" {
   ami           = "ami-26c43149"
   instance_type = "t2.micro"
   security_groups = ["${aws_security_group.swarm.name}"]
-  key_name = "public-key-name"
+  key_name = "${var.key_name}"
 
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get update",
-      "sudo apt-get install apt-transport-https ca-certificates",
-      "sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D",
-      "sudo sh -c 'echo \"deb https://apt.dockerproject.org/repo ubuntu-trusty main\" > /etc/apt/sources.list.d/docker.list'",
+      "sudo apt-get install -y curl apt-transport-https ca-certificates software-properties-common",
+      "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -",
+      "sudo sh -c 'echo \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" > /etc/apt/sources.list.d/docker.list'",
       "sudo apt-get update",
-      "sudo apt-get install -y docker-engine=1.12.0-0~trusty"
+      "sudo apt-get install -y docker-ce",
+      "sudo groupadd docker",
+      "sudo usermod -aG docker ubuntu"
     ]
     connection {
       type     = "ssh"
       user     = "ubuntu"
-      private_key = "${file("/path/to/private/key")}"
+      private_key = "${file("${var.priv_key}")}"
     }
   }
 
@@ -33,7 +35,7 @@ resource "aws_instance" "master" {
     connection {
       type     = "ssh"
       user     = "ubuntu"
-      private_key = "${file("/path/to/private/key")}"
+      private_key = "${file("${var.priv_key}")}"
     }
   }
 
@@ -47,23 +49,25 @@ resource "aws_instance" "slave" {
   ami           = "ami-26c43149"
   instance_type = "t2.micro"
   security_groups = ["${aws_security_group.swarm.name}"]
-  key_name = "public-key-name"
+  key_name = "${var.key_name}"
 
 
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get update",
-      "sudo apt-get install apt-transport-https ca-certificates",
-      "sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D",
-      "sudo sh -c 'echo \"deb https://apt.dockerproject.org/repo ubuntu-trusty main\" > /etc/apt/sources.list.d/docker.list'",
+      "sudo apt-get install -y curl apt-transport-https ca-certificates software-properties-common",
+      "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -",
+      "sudo sh -c 'echo \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" > /etc/apt/sources.list.d/docker.list'",
       "sudo apt-get update",
-      "sudo apt-get install -y docker-engine=1.12.0-0~trusty"
+      "sudo apt-get install -y docker-ce",
+      "sudo groupadd docker",
+      "sudo usermod -aG docker ubuntu"
     ]
 
     connection {
       type     = "ssh"
       user     = "ubuntu"
-      private_key = "${file("/path/to/private/key")}"
+      private_key = "${file("/vagrant/ghe.megaleo/aws_keys/inf-net-stg-frank.pem")}"
     }
   }
   tags = { 

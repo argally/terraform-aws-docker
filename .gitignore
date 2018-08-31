@@ -2,3 +2,5 @@ ssh/
 *.pem
 *.tfstate.backup
 *.tfstate
+stack.auto.tfvars
+.terraform/
