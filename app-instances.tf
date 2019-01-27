@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 resource "aws_instance" "master" {
-  ami           = "ami-26c43149"
+  ami           = "ami-0f430852221c564b2"
   instance_type = "t2.micro"
   security_groups = ["${aws_security_group.swarm.name}"]
   key_name = "${var.key_name}"
@@ -30,7 +30,7 @@ resource "aws_instance" "master" {
 
   provisioner "file" {
     source = "proj"
-    destination = "/home/ubuntu/"
+    destination = "/home/ubuntu"
 
     connection {
       type     = "ssh"
@@ -41,6 +41,30 @@ resource "aws_instance" "master" {
 
   tags = { 
     Name = "swarm-master"
+  }
+}
+
+resource "null_resource" "master-ip" {
+  triggers = {
+    policy_sha1 = "${sha1(file("docker-101/Dockerfile"))}"
+  }
+
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+      private_key = "${file("${var.priv_key}")}"
+    }
+
+  provisioner "file" {
+    source = "docker-101"
+    destination = "/home/ubuntu/"
+
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+      private_key = "${file("${var.priv_key}")}"
+      host     = "${aws_instance.master.public_ip}"
+    }
   }
 }
 

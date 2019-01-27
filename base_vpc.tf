@@ -62,7 +62,14 @@ resource "aws_security_group" "swarm" {
     from_port = 22
     to_port   = 22
     protocol  = "tcp"
-    cidr_blocks = ["64.215.115.131/32"]
+    cidr_blocks = ["64.215.115.131/32", "37.0.7.0/24", "46.7.227.245/32", "154.61.65.190/32"]
+  }
+
+    ingress {
+    from_port = 4000
+    to_port   = 4000
+    protocol  = "tcp"
+    cidr_blocks = ["64.215.115.131/32", "37.0.7.0/24", "46.7.227.245/32", "154.61.65.190/32"]
   }
 
   egress {
